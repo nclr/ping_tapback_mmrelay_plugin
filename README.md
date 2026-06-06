@@ -13,6 +13,7 @@ When a node sends a message containing a trigger word, the plugin responds with 
 | `ping`, `test`, `hello` | hop-count emoji (0️⃣–8️⃣) |
 | `πίνγκ`, `τέστ` (Greek) | hop-count emoji |
 | `καλημέρα` / `kalimera` | ☀️ |
+| `καληνύχτα` / `kalinixta` / `good night` | 🌙 |
 
 The tapback is sent as a **reaction** to the original message (using `reply_id` + `emoji=1`), so it appears as a reaction bubble in Meshtastic clients that support it rather than as a new message.
 

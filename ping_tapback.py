@@ -60,6 +60,9 @@ TRIGGER_PATTERN = re.compile(r'(' + '|'.join(TRIGGER_WORDS) + r')', re.IGNORECAS
 # Matches "καλημέρα" with or without accent on the έ, any case (Greek Unicode)
 GREETING_PATTERN = re.compile(r'(καλημ[εέ]ρα|kal[ih]mera)', re.IGNORECASE | re.UNICODE)
 
+# Matches "καληνύχτα" / "καληνυχτα" / "kalinixta" / "good night"
+GOODNIGHT_PATTERN = re.compile(r'(καλην[υύ]χτα|kalinixta|kalinyxta|kalhnyxta|good\s*night)', re.IGNORECASE | re.UNICODE)
+
 class Plugin(BasePlugin):
     plugin_name = "ping_tapback"
 
@@ -80,10 +83,11 @@ class Plugin(BasePlugin):
 
         message = packet["decoded"]["text"].strip().lower()
         
-        is_greeting = bool(GREETING_PATTERN.search(message))
-        is_trigger  = bool(TRIGGER_PATTERN.search(message))
+        is_greeting  = bool(GREETING_PATTERN.search(message))
+        is_goodnight = bool(GOODNIGHT_PATTERN.search(message))
+        is_trigger   = bool(TRIGGER_PATTERN.search(message))
 
-        if not is_greeting and not is_trigger:
+        if not is_greeting and not is_goodnight and not is_trigger:
             return False
 
         hop_start  = packet.get("hopStart")
@@ -93,7 +97,12 @@ class Plugin(BasePlugin):
         self.logger.info(f"[{self.plugin_name}] hopStart is {hop_start}, hopLimit is {hop_limit}. So hops are {hops}")
         hops_emoji = emoji_map.get(hops, f"🔢{hops}")
 
-        emoji = "☀️" if is_greeting else hops_emoji
+        if is_greeting:
+            emoji = "☀️"
+        elif is_goodnight:
+            emoji = "🌙"
+        else:
+            emoji = hops_emoji
 
         channel = packet.get("channel", 0)
         is_dm   = self.is_direct_message(packet)
