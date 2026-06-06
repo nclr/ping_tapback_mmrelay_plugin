@@ -18,11 +18,17 @@ The tapback is sent as a **reaction** to the original message (using `reply_id` 
 
 ### Traceroute from Matrix
 
-Send `!traceroute <nodeId>` in a Matrix room to trigger a traceroute to any node in the mesh. The plugin replies with the full route and SNR values for each hop.
+Send `!traceroute <node>` in a Matrix room to trigger a traceroute to any node in the mesh. You can pass either a hex node ID (`!abcd1234`) or a short name, which is resolved against the current node list. The plugin replies with the full route and SNR values for each hop, in both directions.
 
 **Example:**
 ```
 !traceroute !abcd1234
+!traceroute MN1
+```
+
+Before running, it acknowledges with a descriptive status line including the target's long name, short name, and ID:
+```
+🔍 Running traceroute to MyNode (MN1) `!abcd1234`…
 ```
 
 **Response:**
@@ -32,7 +38,11 @@ Towards destination: !relay → !abc123 (1.5 dB) → !abcd1234 (3.25 dB)
 Back to us: !abcd1234 → !abc123 (1.75 dB) → !relay (2.5 dB)
 ```
 
-The traceroute runs in the background so the plugin stays responsive to other commands while waiting for the result.
+Hops with no SNR data are shown as `? dB (unknown SNR)`.
+
+The traceroute runs in the background so the plugin stays responsive to other commands while waiting for the result (up to a 90-second timeout).
+
+**Multi-hop handling:** the underlying meshtastic `onResponse` callback is a one-shot handler that gets consumed by the first packet referencing the request — typically an early `ROUTING_APP` ack on multi-hop routes — which previously caused replies from nodes more than one hop away to be lost. To work around this, the plugin also listens on meshtastic's general receive bus and matches the genuine `TRACEROUTE_APP` reply by portnum and source node, so multi-hop traceroutes report reliably.
 
 ## Installation
 
