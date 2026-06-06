@@ -234,7 +234,7 @@ class Plugin(BasePlugin):
                 await asyncio.wait_for(result_event.wait(), timeout=5)
             except asyncio.TimeoutError:
                 pass
-            msg = "\n".join(result_lines) if result_lines else f"⚠️ No response from `{dest}`."
+            msg = "\n\n".join(result_lines) if result_lines else f"⚠️ No response from `{dest}`."
             await self.send_matrix_message(
                 room.room_id, msg, reply_to_event_id=event.event_id,
             )

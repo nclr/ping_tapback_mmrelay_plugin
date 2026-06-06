@@ -28,6 +28,7 @@ Send `!traceroute <nodeId>` in a Matrix room to trigger a traceroute to any node
 **Response:**
 ```
 Towards destination: !relay → !abc123 (1.5 dB) → !abcd1234 (3.25 dB)
+
 Back to us: !abcd1234 → !abc123 (1.75 dB) → !relay (2.5 dB)
 ```
 
