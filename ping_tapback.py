@@ -165,8 +165,18 @@ class Plugin(BasePlugin):
         result_event = asyncio.Event()
         loop         = asyncio.get_running_loop()
 
+        def node_label(node_num):
+            node_id = _node_label(self.client, node_num)  # e.g. "!abcd1234"
+            node    = (self.client.nodes or {}).get(node_id, {})
+            user    = node.get("user", {})
+            long_name  = user.get("longName", "")
+            short_name = user.get("shortName", "")
+            if long_name and short_name:
+                return f"{long_name} ({short_name}) {node_id}"
+            return node_id
+
         def append_hop(s, node_num, snr_val):
-            return f"{s} → {_node_label(self.client, node_num)} ({_format_snr(snr_val)} dB)"
+            return f"{s} → {node_label(node_num)} ({_format_snr(snr_val)} dB)"
 
         def on_traceroute_response(p):
             try:
@@ -182,7 +192,7 @@ class Plugin(BasePlugin):
                 snr_towards   = d.get("snrTowards", [])
                 snr_valid     = len(snr_towards) == len(route_towards) + 1
 
-                s = _node_label(self.client, p["to"])
+                s = node_label(p["to"])
                 for i, num in enumerate(route_towards):
                     s = append_hop(s, num, snr_towards[i] if snr_valid else None)
                 s = append_hop(s, p["from"], snr_towards[-1] if snr_valid else None)
@@ -192,10 +202,10 @@ class Plugin(BasePlugin):
                 snr_back   = d.get("snrBack", [])
                 back_valid = "hopStart" in p and len(snr_back) == len(route_back) + 1
                 if back_valid:
-                    s = _node_label(self.client, p["from"])
+                    s = node_label(p["from"])
                     for i, num in enumerate(route_back):
                         s = append_hop(s, num, snr_back[i])
-                    s = append_hop(s, p["to"], snr_back[-1])
+                    s = append_hop(s, p["to"], snr_back[-1] if snr_back else None)
                     result_lines.append(f"**Back to us:** {s}")
 
                 request_id = self.client._extract_request_id_from_packet(p)
