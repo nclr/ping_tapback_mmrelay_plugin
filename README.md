@@ -1,5 +1,7 @@
 # ping_tapback_mmrelay_plugin
 
+🇬🇧 English | [🇬🇷 Ελληνικά](README.el.md)
+
 A custom plugin for [meshtastic-matrix-relay](https://github.com/jeremiah-k/meshtastic-matrix-relay) that reacts to Meshtastic messages with emoji tapbacks and supports running traceroutes from Matrix.
 
 ## Features
