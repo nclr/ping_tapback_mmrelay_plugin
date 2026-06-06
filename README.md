@@ -26,10 +26,13 @@ Send `!traceroute <node>` in a Matrix room to trigger a traceroute to any node i
 !traceroute MN1
 ```
 
-Before running, it acknowledges with a descriptive status line including the target's long name, short name, and ID:
+Before running, it acknowledges with a descriptive status line including the target's long name, short name, and ID. When the node has a known last position and/or was heard recently, it also adds an OpenStreetMap link to its coordinates and a "last heard" timestamp:
 ```
 🔍 Running traceroute to MyNode (MN1) `!abcd1234`…
+📍 37.97640, 23.72784 — [OpenStreetMap](https://www.openstreetmap.org/?mlat=37.97640&mlon=23.72784#map=15/37.97640/23.72784)
+🕒 Last heard: 2026-06-06 13:37 UTC (12m ago)
 ```
+The 📍 and 🕒 lines are only included when that data is available for the node; otherwise the status message falls back to just the first line.
 
 **Response:**
 ```

@@ -1,6 +1,8 @@
 import asyncio
 import logging
 import re
+import time
+from datetime import datetime, timezone
 from mmrelay.plugins.base_plugin import BasePlugin
 from mmrelay.meshtastic_utils import connect_meshtastic
 from meshtastic.protobuf.mesh_pb2 import MeshPacket, ToRadio
@@ -15,6 +17,26 @@ import google.protobuf.json_format
 logging.getLogger('meshtastic').setLevel(logging.INFO)
 
 BROADCAST_NUM = 0xFFFFFFFF
+
+
+def _format_last_heard(last_heard):
+    """Format a meshtastic lastHeard epoch into 'YYYY-MM-DD HH:MM UTC (Xm ago)'."""
+    if not last_heard:
+        return None
+    try:
+        dt = datetime.fromtimestamp(int(last_heard), tz=timezone.utc)
+    except (TypeError, ValueError, OSError):
+        return None
+    delta = max(0, int(time.time()) - int(last_heard))
+    if delta < 60:
+        ago = f"{delta}s ago"
+    elif delta < 3600:
+        ago = f"{delta // 60}m ago"
+    elif delta < 86400:
+        ago = f"{delta // 3600}h {(delta % 3600) // 60}m ago"
+    else:
+        ago = f"{delta // 86400}d ago"
+    return f"{dt.strftime('%Y-%m-%d %H:%M UTC')} ({ago})"
 
 emoji_map = {0: "0️⃣", 1: "1️⃣", 2: "2️⃣", 3: "3️⃣",
              4: "4️⃣", 5: "5️⃣", 6: "6️⃣", 7: "7️⃣", 8: "8️⃣"}
@@ -189,9 +211,27 @@ class Plugin(BasePlugin):
         else:
             dest_desc = f"`{dest}`"
 
+        # Enrich the status message with the node's last-known position (as an
+        # OpenStreetMap link) and when we last heard from it, when available.
+        extra_lines = []
+        pos = dest_node.get("position", {}) or {}
+        lat = pos.get("latitude")
+        lon = pos.get("longitude")
+        if isinstance(lat, (int, float)) and isinstance(lon, (int, float)) and (lat or lon):
+            osm = f"https://www.openstreetmap.org/?mlat={lat}&mlon={lon}#map=15/{lat}/{lon}"
+            extra_lines.append(f"📍 {lat:.5f}, {lon:.5f} — [OpenStreetMap]({osm})")
+
+        last_heard_str = _format_last_heard(dest_node.get("lastHeard"))
+        if last_heard_str:
+            extra_lines.append(f"🕒 Last heard: {last_heard_str}")
+
+        running_msg = f"🔍 Running traceroute to {dest_desc}…"
+        if extra_lines:
+            running_msg += "\n" + "\n".join(extra_lines)
+
         await self.send_matrix_message(
             room.room_id,
-            f"🔍 Running traceroute to {dest_desc}…",
+            running_msg,
             reply_to_event_id=event.event_id,
         )
 
