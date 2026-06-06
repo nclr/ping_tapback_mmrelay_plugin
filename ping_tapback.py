@@ -109,7 +109,7 @@ class Plugin(BasePlugin):
             # TCPInterface requires wrapping MeshPacket inside ToRadio
             to_radio = ToRadio()
             to_radio.packet.CopyFrom(msh)
-            self.client._sendToRadio(to_radio)
+            self.client._send_to_radio(to_radio)
 
             self.logger.info(
                 f"[{self.plugin_name}] ✅ tapback {emoji} sent to {longname} "
