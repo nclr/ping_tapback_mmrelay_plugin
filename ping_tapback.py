@@ -51,6 +51,7 @@ TRIGGER_WORDS = [
     "hello",
     "π[ίι]νγκ",
     "τ[έε]στ",
+    "τεστ",
 ]
 
 TRIGGER_PATTERN = re.compile(r'(' + '|'.join(TRIGGER_WORDS) + r')', re.IGNORECASE)
@@ -62,6 +63,9 @@ GREETING_PATTERN = re.compile(r'(καλημ[εέ]ρα|kal[ih]mera)', re.IGNORECA
 
 # Matches "καληνύχτα" / "καληνυχτα" / "kalinixta" / "good night"
 GOODNIGHT_PATTERN = re.compile(r'(καλην[υύ]χτα|kalinixta|kalinyxta|kalhnyxta|good\s*night)', re.IGNORECASE | re.UNICODE)
+
+# Matches "καλησπέρα" / "καλησπερα" / "good afternoon"
+GOODAFTERNOON_PATTERN = re.compile(r'(καλησπ[εέ]ρα|good\s*afternoon)', re.IGNORECASE | re.UNICODE)
 
 class Plugin(BasePlugin):
     plugin_name = "ping_tapback"
@@ -83,11 +87,12 @@ class Plugin(BasePlugin):
 
         message = packet["decoded"]["text"].strip().lower()
         
-        is_greeting  = bool(GREETING_PATTERN.search(message))
-        is_goodnight = bool(GOODNIGHT_PATTERN.search(message))
-        is_trigger   = bool(TRIGGER_PATTERN.search(message))
+        is_greeting      = bool(GREETING_PATTERN.search(message))
+        is_goodnight     = bool(GOODNIGHT_PATTERN.search(message))
+        is_goodafternoon = bool(GOODAFTERNOON_PATTERN.search(message))
+        is_trigger       = bool(TRIGGER_PATTERN.search(message))
 
-        if not is_greeting and not is_goodnight and not is_trigger:
+        if not is_greeting and not is_goodnight and not is_goodafternoon and not is_trigger:
             return False
 
         hop_start  = packet.get("hopStart")
@@ -99,6 +104,8 @@ class Plugin(BasePlugin):
 
         if is_greeting:
             emoji = "☀️"
+        elif is_goodafternoon:
+            emoji = "🌞"
         elif is_goodnight:
             emoji = "🌙"
         else:
